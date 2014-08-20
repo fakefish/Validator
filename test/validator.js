@@ -3,7 +3,7 @@
  * Licensed under MIT
  */
 
-'use strict'
+'use strict';
 
 (function (factory) {
 	if (typeof define === 'function' && define.amd) {
@@ -12,15 +12,14 @@
 	} else if (typeof exports === 'object') {
 		// CommonJS
 		factory(require('jquery'))
+	} else if (typeof define === 'function' && define.cmd) {
 		// CMD
 		define(function (require) {
 			require('jquery')
-
 			factory($)
 		})
-
 	} else {
-		factory(jQuery)
+		window.Validator = factory(jQuery)
 	}
 }(function ($){
 	var Validator = function () {}
@@ -28,15 +27,16 @@
 	Validator.prototype = {
 		constructor: Validator,
 
-		config: {
-			REPEAT: {},
+		config: {},
+		result: {},
+
+		settings: {
 			MAXLENGTH: {},
 			MINLENGTH: {},
 			ATMOST: {},
-			ATLEAST: {}
+			ATLEAST: {},
+			REPEAT: {}
 		},
-
-		result: {},
 
 		/**
 		 *
@@ -76,28 +76,33 @@
 				// 过滤继承属性和msg字段
 				if (!config.hasOwnProperty(i) || i === 'msg') continue
 
-				for (var j = 0, len = config[i].length; j < len; j++) {
+				for (var j = 0, jLen = config[i].length; j < jLen; j++) {
 
-					for (var k = 0, len = PATTERNS.length; k < len; k++) {
+					for (var k = 0, kLen = PATTERNS.length; k < kLen; k++) {
 						if (config[i][j].match(PATTERNS[k])) {
 							str = config[i][j]
 							index = str.indexOf('=')
 
 							switch (PATTERNS[k]) {
 								case MAXLENGTH_PATTERN:
-									self.config.MAXLENGTH[i] = +str.substring(index + 1)
+									config[i][j] = 'maxLength'
+									self.settings.MAXLENGTH[i] = +str.substring(index + 1)
 									break;
 								case MINLENGTH_PATTERN:
-									self.config.MINLENGTH[i] = +str.substring(index + 1)
+									config[i][j] = 'minLength'
+									self.settings.MINLENGTH[i] = +str.substring(index + 1)
 									break;
 								case ATMOST_PATTERN:
-									self.config.ATMOST[i] = +str.substring(index + 1)
+									config[i][j] = 'atMost'
+									self.settings.ATMOST[i] = +str.substring(index + 1)
 									break;
 								case ATLEAST_PATTERN:
-									self.config.ATLEAST[i] = +str.substring(index + 1)
+									config[i][j] = 'atLeast'
+									self.settings.ATLEAST[i] = +str.substring(index + 1)
 									break;
 								case REPEAT_PATTERN:
-									self.config.REPEAT[i] = str.substring(index + 1)
+									config[i][j] = 'repeat'
+									self.settings.REPEAT[i] = str.substring(index + 1)
 									break;
 								default:
 									console.info('plugin validator unexpected type: ' + PATTERNS[k])
@@ -107,9 +112,11 @@
 					}
 				}
 			}
+
+			self.config = config
 		},
 
-		validate: function (data, callback) {
+		validate: function (element, callback) {
 			/**
 			 *
 			 * @variables: result 验证结果
@@ -118,32 +125,28 @@
 			 *
 			 */
 			var self = this,
-				result = null,
-				type = null,
-				types = [];
+				$form = element,
+				$input = null,
+				identifier,
+				config = self.config,
+				types = [],
+				result,
+				data = {};
 
-			for (var i in data) {
+			for (var i in config) {
+				if (!config.hasOwnProperty(i) || i === 'msg') continue
 
-				// 过滤数据的继承属性
-				if (!data.hasOwnProperty(i)) continue
+				types = config[i]
+				identifier = 'input[name="' + i + '"]';
+				$input = $form.find($(identifier))
 
-				types = self.config[i];
-
-				for (var j = 0, len = types.length; j < len; j++) {
-					type = types[j];
-
-					if (type.indexOf('repeat') !== -1) type = 'repeat'
-					if (type.indexOf('maxLength') !== -1) type = 'maxLength'
-					if (type.indexOf('minLength') !== -1) type = 'minLength'
-					if (type.indexOf('atLeast') !== -1) type = 'atLeast'
-					if (type.indexOf('atMost') !== -1) type = 'atMost'
-
-					result = self.rules[type](self, i, data[i])
+				for (var j = 0; j < types.length; j++) {
+					result = self.rules[types[j]](self, i, $input.val().trim())
 
 					if (!result.pass) {
 						return callback({
 							pass: false,
-							msg: self.config.msg[i][type]
+							msg: self.config.msg[i][types[j]]
 						})
 					}
 				}
@@ -178,12 +181,10 @@
 			},
 			maxLength: function (context, name, value) {
 				var self = context,
-					attr = value.split('='),
-					value = attr[0],
-					max = attr[1],
-					result = value.length < parseInt(max, 10)
+					len = value.length,
+					maxLen = +self.settings.MAXLENGTH[name];
 
-				if (result) {
+				if (len <= maxLen) {
 					self.result[name] = value
 					return {pass: true}
 				}
@@ -192,36 +193,42 @@
 			},
 			minLength: function (context, name, value) {
 				var self = context,
-					attr = value.split('='),
-					value = attr[0],
-					min = attr[1],
-					result = value.length > parseInt(min, 10)
+					len = value.length,
+					minLen = +self.settings.MINLENGTH[name];
 
-				if (result) {
+				if (len >= minLen) {
 					self.result[name] = value
 					return {pass: true}
 				}
 
 				return {pass: false}
 			},
-			atLeast: function (context, name, value) {
+			atLeast: function (context, name) {
 				var self = context,
-					result = !!$('input[name=' + value + ']:checked').length;
+					len = $('input[name=' + name + ']:checked').length,
+					minLen = self.settings.ATLEAST[name];
 
-				if (result) {
-					self.result[name] = result
+				if (len >= minLen) {
 					return {pass: true}
 				}
 
 				return {pass: false}
 			},
-			atMost: function (name) {
+			atMost: function (context, name) {
+				var self = context,
+					len = $('input[name=' + name + ']:checked').length,
+					maxLen = self.settings.ATMOST[name];
 
+				console.log(len, maxLen)
+
+				if (len <= maxLen) {
+					return {pass: true}
+				}
+
+				return {pass: false}
 			},
 			repeat: function (value) {
-				var result = ($('#new-password').val() === $('#repeat-password').val())
-
-				return {pass: result}
+				// TODO: 缓存用户目标值
 			}
 		}
 	}

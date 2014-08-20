@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-cmns-Hans">
+<head>
+	<meta charset="UTF-8">
+	<title>Validator</title>
+
+	<link rel="stylesheet" href="mocha.css">
+</head>
+<body>
+
+	<form style="display:none;">
+		<input name="name" type="text" data-validator="name">
+		<input name="email" type="email" data-validator="email">
+	</form>
+
+	<!-- <form action="/" method="post">
+		<label for="name">请输入姓名：<input name="name" id="name" type="text" data-validator="name"></label>
+		<br>
+		<label for="email">请输入邮箱：<input name="email" id="email" type="email" data-validator="email"></label>
+		<br>
+		<label for="password">请输入密码：<input name="password" id="password" type="password" data-validator="password"></label>
+		<br>
+		请选择性别：<label for="male"><input id="male" name="gender" type="radio">男</label><label for="female"><input type="radio" id="female" name="gender">女</label>
+		<br>
+		请选择爱好：<label for="apple"><input type="checkbox" name="fruit" id="apple">苹果</label><label for="peach"><input type="checkbox" name="fruit" id="peach">桃子</label><label for="pear"><input type="checkbox" name="fruit" id="pear">梨</label><label for="lemon"><input type="checkbox" name="fruit" id="lemon">柠檬</label>
+		<br>
+		<button id="submit" type="button">提交</button>
+		<div class="alert">错误信息：<div id="alert-msg" style="color:red;"></div></div>
+	</form> -->
+	
+	<div id="mocha"></div>
+
+	<script src="jquery.js"></script>
+	<script src="validator.js"></script>
+	<script>
+		// var config = {
+		// 	name: ['notEmpty', 'minLength=2', 'maxLength=4'],
+		// 	email: ['notEmpty', 'email'],
+		// 	password: ['notEmpty', 'minLength=6', 'maxLength=10'],
+		// 	gender: ['atLeast=1'],
+		// 	fruit: ['atLeast=1', 'atMost=2'],
+		// 	type: ['atLeast=1', 'atMost=2'],
+		// 	msg: {
+		// 		email: {
+		// 			notEmpty: '邮箱地址不能为空',
+		// 			email: '请输入合法的邮箱地址'
+		// 		},
+		// 		name: {
+		// 			notEmpty: '用户名不能为空',
+		// 			minLength: '用户名最少为2个字符',
+		// 			maxLength: '用户名不能超过4个字符'
+		// 		},
+		// 		password: {
+		// 			notEmpty: '密码不能为空',
+		// 			minLength: '密码不能少于6个字符',
+		// 			maxLength: '密码不能超过10个字符'
+		// 		},
+		// 		gender: {
+		// 			atLeast: '请选择性别'
+		// 		},
+		// 		fruit: {
+		// 			atLeast: '请选择爱好',
+		// 			atMost: '爱好最多为2个'
+		// 		}
+		// 	}
+		// }
+
+		// // Validator.init(config)
+
+		// $('#submit').click(function () {
+		// 	Validator.validate($('form'), function(result) {
+		// 		console.log(result)
+		// 	})
+		// })
+	</script>
+	<script src="mocha.js"></script>
+	<script src="chai.js"></script>
+	<script src="test.js"></script>
+</body>
+</html>
