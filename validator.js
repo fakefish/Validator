@@ -209,6 +209,7 @@
 					minLen = self.settings.ATLEAST[name];
 
 				if (len >= minLen) {
+					self.result[name] = value
 					return {pass: true}
 				}
 
@@ -219,9 +220,8 @@
 					len = $('input[name=' + name + ']:checked').length,
 					maxLen = self.settings.ATMOST[name];
 
-				console.log(len, maxLen)
-
 				if (len <= maxLen) {
+					self.result[name] = value
 					return {pass: true}
 				}
 
