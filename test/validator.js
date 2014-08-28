@@ -209,7 +209,7 @@
 					minLen = self.settings.ATLEAST[name];
 
 				if (len >= minLen) {
-					self.result[name] = value
+					self.result[name] = $('input[name=' + name + ']:checked').val()
 					return {pass: true}
 				}
 
@@ -221,7 +221,7 @@
 					maxLen = self.settings.ATMOST[name];
 
 				if (len <= maxLen) {
-					self.result[name] = value
+					self.result[name] = $('input[name=' + name + ']:checked').val()
 					return {pass: true}
 				}
 
