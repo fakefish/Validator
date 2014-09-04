@@ -227,6 +227,17 @@
 
 				return {pass: false}
 			},
+			int: function (context, name, value) {
+				var self = context,
+					result = isNaN(value)
+
+				if (!result) {
+					self.result[name] = value
+					return {pass: true}
+				}
+
+				return {pass: true}
+			},
 			repeat: function (value) {
 				// TODO: 缓存用户目标值
 			}
