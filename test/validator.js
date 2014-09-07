@@ -179,6 +179,18 @@
 
 				return {pass: false}
 			},
+			phone: function (context, name, phone) {
+				var self = context,
+					reg = /^1[3-9]\d{9}$/,
+					result = regex.test(phone)
+
+				if (result) {
+					self.result[name] = phone
+					return {pass: true}
+				}
+
+				return {pass: false}
+			},
 			maxLength: function (context, name, value) {
 				var self = context,
 					len = value.length,
