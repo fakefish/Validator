@@ -48,7 +48,7 @@ Validator::validate = (config, callback) ->
 
 Validator::notEmpty = (name, value) ->
 	regex = /^\s+$/
-	result = value.length && regex.test(value)
+	result = value.length && !regex.test(value)
 
 	if result
 		@result[name] = value
