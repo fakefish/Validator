@@ -16,47 +16,30 @@ Validator是一个基于jQuery的验证器
 
 ```javascript
 	var config = {
-		name: [‘notEmpty’],
-		password: [‘minLength=6’, ‘maxLength=20’],
-		email: [‘notEmpty’, ‘email’],
-		phone: [‘notEmpty’, ‘email’],
-		fruit: [‘atLeast=1’],
+		name: [“notEmpty”],
+		password: [“minLength=6”, “maxLength=20”],
+		email: [“notEmpty”, “email”],
+		phone: [“notEmpty”, “email”],
+		fruit: [“atLeast=1”],
 		msg: {
 			name: {
-				notEmpty: ’name can\’t be empty’
+				notEmpty: “name can’t be empty”
 			},
 			password: {
-				minLength: ‘password can\’t be less than 6 characters’,
-				maxLength: ‘password can\’t be more than 20 characters’
+				minLength: “password can’t be less than 6 characters”,
+				maxLength: “password can’t be more than 20 characters”
 			}
 
 			…
 		}
 	}
 
-	$(‘#form’).valdiate(config, function (result) {
+	$(“#form”).valdiate(config, function (result) {
 		// if success: {pass: true, result: {name: xxx, password:
-		xxx, email: xxx…}}
+		// xxx, email: xxx…}}
 		// if fail: {pass: false, msg: xxx}
 		console.log(result)
 	})
-```
-
-```javascript
-		var config = {
-				name: ['notEmpty'],
-				msg: {
-						name: {
-								notEmpty: '用户姓名不能为空'
-						}
-				}
-		}
-
-		validator.init(config)
-		validator.validate($('#form'), function (result) {
-				result.pass // false
-				result.msg // '用户名不能为空'
-		})
 ```
 
 ## 规则
