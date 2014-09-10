@@ -30,13 +30,12 @@ Validator是一个基于jQuery的验证器
 				maxLength: "password can’t be more than 20 characters"
 			}
 
-			…
+			// other messages goes here...
 		}
 	}
 
 	$("#form").valdiate(config, function (result) {
-		// if success: {pass: true, result: {name: xxx, password:
-		// xxx, email: xxx…}}
+		// if success: {pass: true, result: {name: xxx, password: xxx, email: xxx...}}
 		// if fail: {pass: false, msg: xxx}
 		console.log(result)
 	})
