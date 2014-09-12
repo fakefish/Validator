@@ -41,7 +41,7 @@ Licensed under MIT
         continue;
       }
       types = value;
-      identifier = "input[name=" + key + "]";
+      identifier = "*[data-validator=" + key + "]";
       $input = this.$element.find($(identifier));
       for (_i = 0, _len = types.length; _i < _len; _i++) {
         type = types[_i];
@@ -62,7 +62,7 @@ Licensed under MIT
   Validator.prototype.notEmpty = function(name, value) {
     var regex, result;
     regex = /^\s+$/;
-    result = value.length && regex.test(value);
+    result = value.length && !regex.test(value);
     if (result) {
       this.result[name] = value;
       return {

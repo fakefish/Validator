@@ -35,7 +35,7 @@ Validator::validate = (config, callback) ->
 
 	for key, value of config when config.hasOwnProperty(key) and key isnt 'msg'
 		types = value
-		identifier = "input[name=#{key}]"
+		identifier = "*[data-validator=#{key}]"
 		$input = @$element.find($(identifier))
 
 		for type in types
