@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-cmns-Hans">
+<head>
+	<meta charset="UTF-8">
+	<title>Validator DEMO</title>
+	<link rel="stylesheet" href="bootstrap.min.css">
+	<link rel="stylesheet" href="flat-ui.css">
+	<style>
+		form {
+			border-radius: 4px;
+			width: 600px;
+			padding: 30px;
+			margin: 100px auto;
+			border: 1px solid #d4d4d4;
+		}
+	</style>
+</head>
+<body>
+	<form>
+		<div class="form-group">
+			<input type="text" data-validator="name" data-rules="notEmpty, maxLength=10" class="form-control" placeholder="请输入用户名" />
+		</div>
+		<div class="form-group">
+			<input type="email" class="form-control" placeholder="请输入邮箱" />
+		</div>
+		<div class="form-group">
+			<input type="text" class="form-control" placeholder="请输入密码">
+		</div>
+		<div class="form-group">
+			<label>
+				<input type="radio" name="gender" value="male">男
+			</label>
+			<label>
+				<input type="radio" name="gender" value="female">女
+			</label>
+		</div>
+		<div class="form-group">
+			<select name="place">
+				<option>请选择出生地</option>
+				<option value="winner">近卫</option>
+				<option value="loser">天灾</option>
+			</select>
+		</div>
+		<div class="from-group">
+			<input type="checkbox">影魔
+			<input type="checkbox">小黑
+			<input type="checkbox">巫妖
+			<input type="checkbox">毒龙
+		</div>
+
+		<button class="btn btn-success" style="margin-top:80px;">提交</button>
+	</form>
+
+	<script src="test/jquery.js"></script>
+	<script src="validator.js"></script>
+	<script src="flat-ui.min.js"></script>
+
+	<script>
+		$(':checkbox').radiocheck();
+
+		$('form').on('submit', function (e) {
+			e.preventDefault()
+
+			var config = {
+				msg: {
+					name: {
+						notEmpty: '用户名不能为空',
+						maxLength: '用户名长度不能超过10个字符'
+					}
+				}
+			}
+
+			$(this).validate(config, function (result, data) {
+				console.log(result, data)
+			})
+		})
+	</script>
+</body>
+</html>

@@ -9,6 +9,9 @@ class Validator
 	constructor: (element) ->
 		@$element = $(element)
 
+trim = () ->
+	return @.replace(/^\s+|\s+$/g, '')
+
 # Validator验证通过后的数据
 Validator::result = {}
 
@@ -33,18 +36,37 @@ Validator::validate = (config, callback) ->
 		ATLEAST_PATTERN
 	]
 
-	for key, value of config when config.hasOwnProperty(key) and key isnt 'msg'
-		types = value
+	for key of config.msg when config.msg.hasOwnProperty(key)
+		types = key
 		identifier = "*[data-validator=#{key}]"
 		$input = @$element.find($(identifier))
+		rules = $input.data('rules').split(',')
 
-		for type in types
-			result = @[type](key, $input.val()?.trim())
+		for pattern in PATTERNS
+			for rule, i in rules
+				if (rule.trim().match(pattern))
+					index = rule.indexOf('=')
+					switch pattern
+						when MAXLENGTH_PATTERN
+							@settings.MAXLENGTH[key] = parseInt rule.substring(index + 1), 10
+							rules[i] = 'maxLength'
+						when MINLENGTH_PATTERN
+							@settings.MINLENGTH[key] = parseInt rule.substring(index + 1), 10
+							rules[i] = 'minLength'
+						when ATMOST_PATTERN
+							@settings.ATMOST[key] = parseInt rule.substring(index + 1), 10
+							rules[i] = 'atMost'
+						when ATLEAST_PATTERN
+							@settings.ATLEAST[key] = parseInt rule.substring(index + 1), 10
+							rules[i] = 'atLeast'
+
+		for rule in rules
+			result = @[rule](key, $input.val()?.trim())
 
 			unless result.pass
-				return callback({pass: false, msg: config.msg[key][type]})
+				return callback({pass: false, msg: config.msg[key][rule]})
 
-	callback({pass: true}, @result)
+		callback({pass: true}, @result)
 
 Validator::notEmpty = (name, value) ->
 	regex = /^\s+$/

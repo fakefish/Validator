@@ -9,8 +9,8 @@
 <body>
 
 	<form>
-		<input name="name" type="text" data-validator="name">
-		<input name="email" type="email" data-validator="email">
+		<input id="name" name="name" type="text" data-validator="name" data-rules="notEmpty,maxLength=10">
+		<input id="email" name="email" type="email" data-validator="email" data-rules="notEmpty,email">
 	</form>
 	
 	<div id="mocha"></div>

@@ -7,7 +7,7 @@ Licensed under MIT
 
 (function() {
   'use strict';
-  var Validator, old;
+  var Validator, old, trim;
 
   Validator = (function() {
     function Validator(element) {
@@ -17,6 +17,10 @@ Licensed under MIT
     return Validator;
 
   })();
+
+  trim = function() {
+    return this.replace(/^\s+|\s+$/g, '');
+  };
 
   Validator.prototype.result = {};
 
@@ -29,34 +33,60 @@ Licensed under MIT
   };
 
   Validator.prototype.validate = function(config, callback) {
-    var $input, ATLEAST_PATTERN, ATMOST_PATTERN, MAXLENGTH_PATTERN, MINLENGTH_PATTERN, PATTERNS, identifier, key, result, type, types, value, _i, _len, _ref;
+    var $input, ATLEAST_PATTERN, ATMOST_PATTERN, MAXLENGTH_PATTERN, MINLENGTH_PATTERN, PATTERNS, i, identifier, index, key, pattern, result, rule, rules, types, _i, _j, _k, _len, _len1, _len2, _ref;
     MAXLENGTH_PATTERN = /maxLength=/i;
     MINLENGTH_PATTERN = /minLength=/i;
     ATMOST_PATTERN = /atMost=/i;
     ATLEAST_PATTERN = /atLeast=/i;
     PATTERNS = [MAXLENGTH_PATTERN, MINLENGTH_PATTERN, ATMOST_PATTERN, ATLEAST_PATTERN];
-    for (key in config) {
-      value = config[key];
-      if (!(config.hasOwnProperty(key) && key !== 'msg')) {
+    for (key in config.msg) {
+      if (!(config.msg.hasOwnProperty(key))) {
         continue;
       }
-      types = value;
+      types = key;
       identifier = "*[data-validator=" + key + "]";
       $input = this.$element.find($(identifier));
-      for (_i = 0, _len = types.length; _i < _len; _i++) {
-        type = types[_i];
-        result = this[type](key, (_ref = $input.val()) != null ? _ref.trim() : void 0);
+      rules = $input.data('rules').split(',');
+      for (_i = 0, _len = PATTERNS.length; _i < _len; _i++) {
+        pattern = PATTERNS[_i];
+        for (i = _j = 0, _len1 = rules.length; _j < _len1; i = ++_j) {
+          rule = rules[i];
+          if (rule.trim().match(pattern)) {
+            index = rule.indexOf('=');
+            switch (pattern) {
+              case MAXLENGTH_PATTERN:
+                this.settings.MAXLENGTH[key] = parseInt(rule.substring(index + 1), 10);
+                rules[i] = 'maxLength';
+                break;
+              case MINLENGTH_PATTERN:
+                this.settings.MINLENGTH[key] = parseInt(rule.substring(index + 1), 10);
+                rules[i] = 'minLength';
+                break;
+              case ATMOST_PATTERN:
+                this.settings.ATMOST[key] = parseInt(rule.substring(index + 1), 10);
+                rules[i] = 'atMost';
+                break;
+              case ATLEAST_PATTERN:
+                this.settings.ATLEAST[key] = parseInt(rule.substring(index + 1), 10);
+                rules[i] = 'atLeast';
+            }
+          }
+        }
+      }
+      for (_k = 0, _len2 = rules.length; _k < _len2; _k++) {
+        rule = rules[_k];
+        result = this[rule](key, (_ref = $input.val()) != null ? _ref.trim() : void 0);
         if (!result.pass) {
           return callback({
             pass: false,
-            msg: config.msg[key][type]
+            msg: config.msg[key][rule]
           });
         }
       }
+      callback({
+        pass: true
+      }, this.result);
     }
-    return callback({
-      pass: true
-    }, this.result);
   };
 
   Validator.prototype.notEmpty = function(name, value) {
