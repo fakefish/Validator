@@ -61,12 +61,12 @@ Validator::validate = (config, callback) ->
 							rules[i] = 'atLeast'
 
 		for rule in rules
-			result = @[rule](key, $input.val()?.trim())
+			result = @[rule.trim()](key, $input.val()?.trim())
 
 			unless result.pass
-				return callback({pass: false, msg: config.msg[key][rule]})
+				return callback({pass: false, msg: config.msg[key][rule.trim()]})
 
-		callback({pass: true}, @result)
+	callback({pass: true}, @result)
 
 Validator::notEmpty = (name, value) ->
 	regex = /^\s+$/
@@ -119,7 +119,7 @@ Validator::maxLength = (name, value) ->
     {pass: false}
 
 Validator::atLeast = (name, value) ->
-    len = $("input[name=#{name}]:checked").length
+    len = $("*[data-validator=#{name}]:checked").length || $("*[data-validator=#{name}]:selected").length
     minLen = @settings.ATLEAST[name]
 
     if len >= minLen
@@ -129,7 +129,7 @@ Validator::atLeast = (name, value) ->
     {pass: false}
 
 Validator::atMost = (name, value) ->
-    len = $("input[name=#{name}]:checked").length
+    len = $("*[data-validator=#{name}]:checked").length || $("*[data-validator=#{name}]:selected")
     maxLen = @settings.ATMOST[name]
 
     if len <= maxLen

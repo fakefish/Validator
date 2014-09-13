@@ -75,18 +75,18 @@ Licensed under MIT
       }
       for (_k = 0, _len2 = rules.length; _k < _len2; _k++) {
         rule = rules[_k];
-        result = this[rule](key, (_ref = $input.val()) != null ? _ref.trim() : void 0);
+        result = this[rule.trim()](key, (_ref = $input.val()) != null ? _ref.trim() : void 0);
         if (!result.pass) {
           return callback({
             pass: false,
-            msg: config.msg[key][rule]
+            msg: config.msg[key][rule.trim()]
           });
         }
       }
-      callback({
-        pass: true
-      }, this.result);
     }
+    return callback({
+      pass: true
+    }, this.result);
   };
 
   Validator.prototype.notEmpty = function(name, value) {
@@ -166,7 +166,7 @@ Licensed under MIT
 
   Validator.prototype.atLeast = function(name, value) {
     var len, minLen;
-    len = $("input[name=" + name + "]:checked").length;
+    len = $("*[data-validator=" + name + "]:checked").length || $("*[data-validator=" + name + "]:selected").length;
     minLen = this.settings.ATLEAST[name];
     if (len >= minLen) {
       this.result[name] = value;
@@ -181,8 +181,10 @@ Licensed under MIT
 
   Validator.prototype.atMost = function(name, value) {
     var len, maxLen;
-    len = $("input[name=" + name + "]:checked").length;
+    len = $("*[data-validator=" + name + "]:checked").length || $("*[data-validator=" + name + "]:selected");
     maxLen = this.settings.ATMOST[name];
+
+    console.log(len, maxLen)
     if (len <= maxLen) {
       this.result[name] = value;
       return {
