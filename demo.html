@@ -113,12 +113,14 @@
 					camp: {
 						notEmpty: '请选择阵营'
 					}
-				}
+				},
+				onParent: true,
+				errorClass: 'has-error'
 			}
 
 			$(this).validate(config, function (result, data) {
 				if (!result.pass) {
-					$('#func-alert-error').fadeIn().text(result.msg)
+					return $('#func-alert-error').fadeIn().text(result.msg)
 				}
 
 				$('#func-alert-error').fadeOut().text()

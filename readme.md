@@ -1,35 +1,40 @@
 # Validator
-Validator是一个基于jQuery的验证器
 
-## 使用方法
+> Validator是一个基于jQuery的验证器
+
+-------------------
+
+- Live DEMO [http://klamtlne.github.io/Validator/](http://klamtlne.github.io/Validator/)
+
+-------------------
+
+## Usage
 ```html
 	<form id="form">
-		<input type="text" name="name">
-		<input type="password" name="password">
-		<input type="email" name="email">
-		<input type="text" name="phone">
-		<input type="checkbox" name="fruit" value="apple">
-		<input type="checkbox" name="fruit" value="pear">
-		<input type="checkbox" name="fruit" value="lemon">
+		<input type="text" data-validator="name" data-rules="notEmpty, maxLength=10">
+		<input type="password" data-validator="password" data-rules="notEmpty, minLength=6">
+		<input type="email" data-validator="email" data-rules="notEmpty, email">
+		<input type="text" data-validator="phone" data-rules="phone">
+		<input type="checkbox" data-validator="fruit" value="apple" data-rules="atLeast=1, atMost=2">
+		<input type="checkbox" data-validator="fruit" value="pear">
+		<input type="checkbox" data-validator="fruit" value="lemon">
+		<select data-validator="selection" data-rules="notEmpty">
+			<option value="1"></option>
+			<option value="2"></option>
+		</select>
 	</form>
 ```
 
 ```javascript
 	var config = {
-		name: ["notEmpty"],
-		password: ["minLength=6", "maxLength=20"],
-		email: ["notEmpty", "email"],
-		phone: ["notEmpty", "email"],
-		fruit: ["atLeast=1"],
 		msg: {
 			name: {
-				notEmpty: "name can’t be empty"
+				notEmpty: "name can’t be empty",
+				maxLength: "name can't be more than 10 characters"
 			},
 			password: {
-				minLength: "password can’t be less than 6 characters",
-				maxLength: "password can’t be more than 20 characters"
+				minLength: "password can’t be less than 6 characters"
 			}
-
 			// other messages goes here...
 		}
 	}
@@ -41,10 +46,31 @@ Validator是一个基于jQuery的验证器
 	})
 ```
 
-## 规则
+## Introduction
+
+Validator will quit as soon as it meets up the first error, Valdiator would return {key: value} pair in config file while success, which is super convient for form validation & upload
+
+## OPTIONS
+
+```javascript
+	options = {
+		// error msg returned when meets error
+		msg: {Object},
+
+		// whether to addclass on parent dom element while error occurs
+		isOnParent: {Boolean},
+
+		// error class prepare to add
+		errorClass: {String}
+	}
+```
+
+
+## Rules
 - notEmpty
 - email
 - phone
+- int
 - maxLength
 - minLength
 - atLeast

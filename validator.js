@@ -33,12 +33,14 @@ Licensed under MIT
   };
 
   Validator.prototype.validate = function(config, callback) {
-    var $input, ATLEAST_PATTERN, ATMOST_PATTERN, MAXLENGTH_PATTERN, MINLENGTH_PATTERN, PATTERNS, i, identifier, index, key, pattern, result, rule, rules, types, _i, _j, _k, _len, _len1, _len2, _ref;
+    var $input, ATLEAST_PATTERN, ATMOST_PATTERN, MAXLENGTH_PATTERN, MINLENGTH_PATTERN, PATTERNS, i, identifier, index, key, pattern, result, rule, rules, types, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
     MAXLENGTH_PATTERN = /maxLength=/i;
     MINLENGTH_PATTERN = /minLength=/i;
     ATMOST_PATTERN = /atMost=/i;
     ATLEAST_PATTERN = /atLeast=/i;
     PATTERNS = [MAXLENGTH_PATTERN, MINLENGTH_PATTERN, ATMOST_PATTERN, ATLEAST_PATTERN];
+    this.onParent = (_ref = config.onParent) != null ? _ref : true;
+    this.errorClass = config.errorClass || 'has-error';
     for (key in config.msg) {
       if (!(config.msg.hasOwnProperty(key))) {
         continue;
@@ -75,8 +77,14 @@ Licensed under MIT
       }
       for (_k = 0, _len2 = rules.length; _k < _len2; _k++) {
         rule = rules[_k];
-        result = this[rule.trim()](key, (_ref = $input.val()) != null ? _ref.trim() : void 0);
+        result = this[rule.trim()](key, (_ref1 = $input.val()) != null ? _ref1.trim() : void 0);
+        $input.parent().removeClass(this.errorClass);
         if (!result.pass) {
+          if (this.onParent) {
+            $input.focus().parent().addClass(this.errorClass);
+          } else {
+            $input.focus().addClass(this.errorClass);
+          }
           return callback({
             pass: false,
             msg: config.msg[key][rule.trim()]
@@ -183,8 +191,6 @@ Licensed under MIT
     var len, maxLen;
     len = $("*[data-validator=" + name + "]:checked").length || $("*[data-validator=" + name + "]:selected");
     maxLen = this.settings.ATMOST[name];
-
-    console.log(len, maxLen)
     if (len <= maxLen) {
       this.result[name] = value;
       return {
