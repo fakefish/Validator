@@ -5,6 +5,8 @@ Licensed under MIT
 
 'use strict'
 
+
+
 class Validator
 	constructor: (element) ->
 		@$element = $(element)
@@ -36,7 +38,7 @@ Validator::validate = (config, callback) ->
 		ATLEAST_PATTERN
 	]
 
-	@onParent = config.onParent ? true
+	@isOnParent = config.isOnParent ? true
 	@errorClass = config.errorClass || 'has-error'
 
 	for key of config.msg when config.msg.hasOwnProperty(key)
@@ -68,7 +70,7 @@ Validator::validate = (config, callback) ->
 			$input.parent().removeClass(@errorClass)
 
 			unless result.pass
-				if @onParent then $input.focus().parent().addClass(@errorClass) else $input.focus().addClass(@errorClass)
+				if @isOnParent then $input.focus().parent().addClass(@errorClass) else $input.focus().addClass(@errorClass)
 				return callback({pass: false, msg: config.msg[key][rule.trim()]})
 
 	callback({pass: true}, @result)
