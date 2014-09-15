@@ -39,9 +39,12 @@
 		}
 	}
 
-	$("#form").valdiate(config, function (result) {
-		// if success: {pass: true, result: {name: xxx, password: xxx, email: xxx...}}
+	$("#form").valdiate(config, function (result, data) {
+		// if success: result = {pass: true}
+		// data = {name: xxx, password: xxx, email: xxx...}
+		
 		// if fail: {pass: false, msg: xxx}
+		// data = undefined
 		console.log(result)
 	})
 ```
