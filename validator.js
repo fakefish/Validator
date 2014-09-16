@@ -9,22 +9,7 @@ Licensed under MIT
   'use strict';
   var factory;
 
-  (function(factory) {
-    if (typeof define === "function" && define.amd) {
-      define(["jquery"], factory);
-    } else if (typeof exports === "object") {
-      factory(require("jquery"));
-    } else if (typeof define === "function" && define.cmd) {
-      define(function(require) {
-        require("jquery");
-        factory($);
-      });
-    } else {
-      window.Validator = factory(jQuery);
-    }
-  })(factory);
-
-  factory = function() {
+  factory = function($) {
     var Validator, old, trim;
     Validator = (function() {
       function Validator(element) {
@@ -46,7 +31,7 @@ Licensed under MIT
       REPEAT: {}
     };
     Validator.prototype.validate = function(config, callback) {
-      var $input, ATLEAST_PATTERN, ATMOST_PATTERN, MAXLENGTH_PATTERN, MINLENGTH_PATTERN, PATTERNS, i, identifier, index, key, pattern, result, rule, rules, types, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
+      var $input, ATLEAST_PATTERN, ATMOST_PATTERN, MAXLENGTH_PATTERN, MINLENGTH_PATTERN, PATTERNS, i, identifier, index, key, pattern, result, rule, rules, types, _i, _j, _k, _len, _len1, _len2, _ref;
       MAXLENGTH_PATTERN = /maxLength=/i;
       MINLENGTH_PATTERN = /minLength=/i;
       ATMOST_PATTERN = /atMost=/i;
@@ -86,32 +71,37 @@ Licensed under MIT
                   rules[i] = 'atLeast';
               }
             }
-          }
-        }
-        for (_k = 0, _len2 = rules.length; _k < _len2; _k++) {
-          rule = rules[_k];
-          result = this[rule.trim()](key, (_ref1 = $input.val()) != null ? _ref1.trim() : void 0);
-          $input.parent().removeClass(this.errorClass);
-          if (!result.pass) {
-            if (this.isOnParent) {
-              $input.focus().parent().addClass(this.errorClass);
-            } else {
-              $input.focus().addClass(this.errorClass);
+            for (_k = 0, _len2 = rules.length; _k < _len2; _k++) {
+              rule = rules[_k];
+              result = this[rule.trim()](key, $input);
+              if (this.isOnParent) {
+                $input.parent().removeClass(this.errorClass);
+              } else {
+                $input.removeClass(this.errorClass);
+              }
+              if (!result.pass) {
+                if (this.isOnParent) {
+                  $input.focus().parent().addClass(this.errorClass);
+                } else {
+                  $input.focus().addClass(this.errorClass);
+                }
+                return callback({
+                  pass: false,
+                  msg: config.msg[key][rule.trim()]
+                });
+              }
             }
-            return callback({
-              pass: false,
-              msg: config.msg[key][rule.trim()]
-            });
+            callback({
+              pass: true
+            }, this.result);
           }
         }
       }
-      return callback({
-        pass: true
-      }, this.result);
     };
-    Validator.prototype.notEmpty = function(name, value) {
-      var regex, result;
+    Validator.prototype.notEmpty = function(name, $input) {
+      var regex, result, value, _ref;
       regex = /^\s+$/;
+      value = (_ref = $input.val()) != null ? _ref.trim() : void 0;
       result = value.length && !regex.test(value);
       if (result) {
         this.result[name] = value;
@@ -123,9 +113,10 @@ Licensed under MIT
         pass: false
       };
     };
-    Validator.prototype.email = function(name, value) {
-      var regex, result;
+    Validator.prototype.email = function(name, $input) {
+      var regex, result, value, _ref;
       regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      value = (_ref = $input.val()) != null ? _ref.trim() : void 0;
       result = regex.test(value);
       if (result) {
         this.result[name] = value;
@@ -137,9 +128,10 @@ Licensed under MIT
         pass: false
       };
     };
-    Validator.prototype.phone = function(name, value) {
-      var regex, result;
+    Validator.prototype.phone = function(name, $input) {
+      var regex, result, value, _ref;
       regex = /^1[3-9]\d{9}$/;
+      value = (_ref = $input.val()) != null ? _ref.trim() : void 0;
       result = regex.test(value);
       if (result) {
         this.result[name] = value;
@@ -151,8 +143,9 @@ Licensed under MIT
         pass: false
       };
     };
-    Validator.prototype.minLength = function(name, value) {
-      var len, minLen;
+    Validator.prototype.minLength = function(name, $input) {
+      var len, minLen, value, _ref;
+      value = (_ref = $input.val()) != null ? _ref.trim() : void 0;
       len = value.length;
       minLen = parseInt(this.settings.MINLENGTH[name], 10);
       if (len >= minLen) {
@@ -165,8 +158,9 @@ Licensed under MIT
         pass: false
       };
     };
-    Validator.prototype.maxLength = function(name, value) {
-      var len, maxLen;
+    Validator.prototype.maxLength = function(name, $input) {
+      var len, maxLen, value, _ref;
+      value = (_ref = $input.val()) != null ? _ref.trim() : void 0;
       len = value.length;
       maxLen = parseInt(this.settings.MAXLENGTH[name], 10);
       if (len <= maxLen) {
@@ -179,12 +173,23 @@ Licensed under MIT
         pass: false
       };
     };
-    Validator.prototype.atLeast = function(name, value) {
-      var len, minLen;
-      len = $("*[data-validator=" + name + "]:checked").length || $("*[data-validator=" + name + "]:selected").length;
+    Validator.prototype.atLeast = function(name, $input) {
+      var detecter, len, list, minLen;
+      if ($input.attr('type') === 'checkbox') {
+        detecter = ':checked';
+      } else {
+        detecter = ':selected';
+      }
+      list = [];
+      $input.each(function() {
+        if (this.is(detecter)) {
+          return list.push(this.val());
+        }
+      });
+      len = list.length;
       minLen = this.settings.ATLEAST[name];
       if (len >= minLen) {
-        this.result[name] = value;
+        this.result[name] = list.join(',');
         return {
           pass: true
         };
@@ -193,12 +198,23 @@ Licensed under MIT
         pass: false
       };
     };
-    Validator.prototype.atMost = function(name, value) {
-      var len, maxLen;
-      len = $("*[data-validator=" + name + "]:checked").length || $("*[data-validator=" + name + "]:selected");
+    Validator.prototype.atMost = function(name, $input) {
+      var detecter, len, list, maxLen;
+      if ($input.attr('type') === 'checkbox') {
+        detecter = ':checked';
+      } else {
+        detecter = ':selected';
+      }
+      list = [];
+      $input.each(function() {
+        if (this.is(detecter)) {
+          return list.push(this.val());
+        }
+      });
+      len = list.length;
       maxLen = this.settings.ATMOST[name];
       if (len <= maxLen) {
-        this.result[name] = value;
+        this.result[name] = list.join(',');
         return {
           pass: true
         };
@@ -207,8 +223,9 @@ Licensed under MIT
         pass: false
       };
     };
-    Validator.prototype.int = function(name, value) {
-      var result;
+    Validator.prototype.int = function(name, $input) {
+      var result, value, _ref;
+      value = (_ref = $input.val()) != null ? _ref.trim() : void 0;
       result = !isNaN(value);
       if (result) {
         this.result[name] = value;
@@ -224,10 +241,26 @@ Licensed under MIT
     $.fn.validate = function(config, callback) {
       return new Validator(this).validate(config, callback);
     };
+    $.fn.validate.constructor = Validator;
     return $.fn.validate.noConflict = function() {
       $.fn.validate = old;
       return this;
     };
   };
+
+  (function(factory) {
+    if (typeof define === "function" && define.amd) {
+      return define(["jquery"], factory);
+    } else if (typeof exports === "object") {
+      return factory(require("jquery"));
+    } else if (typeof define === "function" && define.cmd) {
+      return define(function(require) {
+        require("jquery");
+        return factory($);
+      });
+    } else {
+      return window.Validator = factory(jQuery);
+    }
+  })(factory);
 
 }).call(this);

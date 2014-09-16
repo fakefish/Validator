@@ -4,7 +4,6 @@ describe('Validator', function () {
 	describe('#notEmpty', function () {
 		it('Validator notEmpty test', function () {
 			var config = {
-				name: ['notEmpty'],
 				msg: {
 					name: {
 						notEmpty: 'name can not be empty'
