@@ -1,6 +1,6 @@
 # Validator
 
-> Validator是一个基于jQuery的验证器
+> Validator is a plugin for form validator based on jQuery, you can use it in any module loader.
 
 -------------------
 
