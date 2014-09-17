@@ -64,15 +64,15 @@ factory = ($) ->
                                 @settings.ATLEAST[key] = parseInt rule.substring(index + 1), 10
                                 rules[i] = 'atLeast'
 
-                    for rule in rules
-                        result = @[rule.trim()](key, $input)
-                        if @isOnParent then $input.parent().removeClass(@errorClass) else $input.removeClass(@errorClass)
+            for rule in rules
+                result = @[rule.trim()](key, $input)
+                if @isOnParent then $input.parent().removeClass(@errorClass) else $input.removeClass(@errorClass)
 
-                        unless result.pass
-                            if @isOnParent then $input.focus().parent().addClass(@errorClass) else $input.focus().addClass(@errorClass)
-                            return callback({pass: false, msg: config.msg[key][rule.trim()]})
+                unless result.pass
+                    if @isOnParent then $input.focus().parent().addClass(@errorClass) else $input.focus().addClass(@errorClass)
+                    return callback({pass: false, msg: config.msg[key][rule.trim()]})
 
-                    callback({pass: true}, @result)
+        callback({pass: true}, @result)
 
     Validator::notEmpty = (name, $input) ->
         regex = /^\s+$/
@@ -130,11 +130,11 @@ factory = ($) ->
         {pass: false}
 
     Validator::atLeast = (name, $input) ->
-        if $input.attr('type') is 'checkbox' then detecter = ':checked' else detecter = ':selected'
+        if $input.attr('type') is 'checkbox' || 'radio' then detecter = ':checked' else detecter = ':selected'
         list = []
 
         $input.each () ->
-            if @.is(detecter) then list.push @.val()
+            if $(@).is(detecter) then list.push $(@).val()
 
         len = list.length
         minLen = @settings.ATLEAST[name]
@@ -146,11 +146,11 @@ factory = ($) ->
         {pass: false}
 
     Validator::atMost = (name, $input) ->
-        if $input.attr('type') is 'checkbox' then detecter = ':checked' else detecter = ':selected'
+        if $input.attr('type') is 'checkbox' || 'radio' then detecter = ':checked' else detecter = ':selected'
         list = []
 
         $input.each () ->
-            if @.is(detecter) then list.push @.val()
+            if $(@).is(detecter) then list.push $(@).val()
 
         len = list.length
         maxLen = @settings.ATMOST[name]

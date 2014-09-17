@@ -71,32 +71,32 @@ Licensed under MIT
                   rules[i] = 'atLeast';
               }
             }
-            for (_k = 0, _len2 = rules.length; _k < _len2; _k++) {
-              rule = rules[_k];
-              result = this[rule.trim()](key, $input);
-              if (this.isOnParent) {
-                $input.parent().removeClass(this.errorClass);
-              } else {
-                $input.removeClass(this.errorClass);
-              }
-              if (!result.pass) {
-                if (this.isOnParent) {
-                  $input.focus().parent().addClass(this.errorClass);
-                } else {
-                  $input.focus().addClass(this.errorClass);
-                }
-                return callback({
-                  pass: false,
-                  msg: config.msg[key][rule.trim()]
-                });
-              }
+          }
+        }
+        for (_k = 0, _len2 = rules.length; _k < _len2; _k++) {
+          rule = rules[_k];
+          result = this[rule.trim()](key, $input);
+          if (this.isOnParent) {
+            $input.parent().removeClass(this.errorClass);
+          } else {
+            $input.removeClass(this.errorClass);
+          }
+          if (!result.pass) {
+            if (this.isOnParent) {
+              $input.focus().parent().addClass(this.errorClass);
+            } else {
+              $input.focus().addClass(this.errorClass);
             }
-            callback({
-              pass: true
-            }, this.result);
+            return callback({
+              pass: false,
+              msg: config.msg[key][rule.trim()]
+            });
           }
         }
       }
+      return callback({
+        pass: true
+      }, this.result);
     };
     Validator.prototype.notEmpty = function(name, $input) {
       var regex, result, value, _ref;
@@ -175,15 +175,15 @@ Licensed under MIT
     };
     Validator.prototype.atLeast = function(name, $input) {
       var detecter, len, list, minLen;
-      if ($input.attr('type') === 'checkbox') {
+      if ($input.attr('type') === 'checkbox' || 'radio') {
         detecter = ':checked';
       } else {
         detecter = ':selected';
       }
       list = [];
       $input.each(function() {
-        if (this.is(detecter)) {
-          return list.push(this.val());
+        if ($(this).is(detecter)) {
+          return list.push($(this).val());
         }
       });
       len = list.length;
@@ -200,15 +200,15 @@ Licensed under MIT
     };
     Validator.prototype.atMost = function(name, $input) {
       var detecter, len, list, maxLen;
-      if ($input.attr('type') === 'checkbox') {
+      if ($input.attr('type') === 'checkbox' || 'radio') {
         detecter = ':checked';
       } else {
         detecter = ':selected';
       }
       list = [];
       $input.each(function() {
-        if (this.is(detecter)) {
-          return list.push(this.val());
+        if ($(this).is(detecter)) {
+          return list.push($(this).val());
         }
       });
       len = list.length;
