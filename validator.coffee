@@ -13,10 +13,10 @@ factory = ($) ->
     trim = () ->
         @.replace(/^\s+|\s+$/g, '')
 
-    # Validator验证通过后的数据
+    # result stores {key: value} pairs, will be returned after validation pass
     Validator::result = {}
 
-    # Validator预设值
+    # settings stores data related to config 
     Validator::settings = 
         MAXLENGTH: {}
         MINLENGTH: {}
@@ -68,10 +68,12 @@ factory = ($) ->
                 result = @[rule.trim()](key, $input)
                 if @isOnParent then $input.parent().removeClass(@errorClass) else $input.removeClass(@errorClass)
 
+                # returned after it meets up first error
                 unless result.pass
                     if @isOnParent then $input.focus().parent().addClass(@errorClass) else $input.focus().addClass(@errorClass)
                     return callback({pass: false, msg: config.msg[key][rule.trim()]})
 
+        # returned after all rules pass
         callback({pass: true}, @result)
 
     Validator::notEmpty = (name, $input) ->
@@ -96,6 +98,7 @@ factory = ($) ->
 
         {pass: false}
 
+    ## starts with number 1, next is 3~9, following up are nine numbers
     Validator::phone = (name, $input) ->
         regex = /^1[3-9]\d{9}$/
         value = $input.val()?.trim()
@@ -106,6 +109,17 @@ factory = ($) ->
             return {pass: true}
 
         {pass: false}
+
+    Validator::tel = (name, $input) ->
+        regex = /^(?:(?:0\d{2,3}[- ]?[1-9]\d{6,7})|(?:[48]00[- ]?[1-9]\d{6}))$/
+
+    Validator::range = (name, $input) ->
+
+    Validator::max = (name, $input) ->
+
+    Validator::contains = (name, $input) ->
+
+    
 
     Validator::minLength = (name, $input) ->
         value = $input.val()?.trim()
