@@ -6,8 +6,6 @@
 
 - Live DEMO [http://klamtlne.github.io/Validator/](http://klamtlne.github.io/Validator/)
 
--------------------
-
 ## Usage
 ```html
 	<form id="form">
