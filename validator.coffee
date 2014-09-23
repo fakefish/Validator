@@ -1,159 +1,140 @@
 ### 
-Validator v0.0.1
+Validator
 Licensed under MIT
 ###
 
 'use strict'
 
-class Validator
-	constructor: (element) ->
-		@$element = $(element)
+# factory函数，用来搭配不同的模块加载器
+factory = ($) ->
+    class Validator
+        constructor: (element) ->
+            @$element = $(element)
 
-trim = () ->
-	return @.replace(/^\s+|\s+$/g, '')
+    # 类型判断
+    Validator::patterns = 
+        # 必须 填/选 字段
+        required: (name, $item) ->
+            regex = /^\s+$/
+            value = $item.val().trim()
+            result = !!value.length && !regex.test(value)
 
-# Validator验证通过后的数据
-Validator::result = {}
+        email: (name, $item) ->
+            regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            value = $item.val()?.trim()
+            result = regex.test(value)
 
-# Validator预设值
-Validator::settings = 
-	MAXLENGTH: {}
-	MINLENGTH: {}
-	ATMOST: {}
-	ATLEAST: {}
-	REPEAT: {}
+    # 验证规则配置
+    Validator::defineValues = 
+        maxLength: null,
+        minLength: null,
+        max: null,
+        min: null,
+        check: null
 
-Validator::validate = (config, callback) ->
-	MAXLENGTH_PATTERN = /maxLength=/i
-	MINLENGTH_PATTERN = /minLength=/i
-	ATMOST_PATTERN    = /atMost=/i
-	ATLEAST_PATTERN   = /atLeast=/i
-	
-	PATTERNS = [
-		MAXLENGTH_PATTERN
-		MINLENGTH_PATTERN
-		ATMOST_PATTERN
-		ATLEAST_PATTERN
-	]
+    # 配置验证规则
+    Validator::storeValue = (rule) ->
+        pattern_maxLength = /maxLength=/i
+        pattern_minLength = /minLength=/i
+        pattern_check    = /check=/i
+        patterns = [pattern_maxLength, pattern_minLength, pattern_check]
 
-	for key of config.msg when config.msg.hasOwnProperty(key)
-		types = key
-		identifier = "*[data-validator=#{key}]"
-		$input = @$element.find($(identifier))
-		rules = $input.data('rules').split(',')
+        for pattern in patterns
+            if rule.match pattern
+                rule = rule.split('=')
+                switch pattern
+                    when pattern_maxLength
+                        @defineValues.maxLength = rule[1]
+                        return rule[0]
+                    when pattern_minLength
+                        @defineValues.minLength = rule[1]
+                        return rule[0]
+                    when pattern_check
+                        @defineValues.check = rule[1]
+                        return rule[0]
 
-		for pattern in PATTERNS
-			for rule, i in rules
-				if (rule.trim().match(pattern))
-					index = rule.indexOf('=')
-					switch pattern
-						when MAXLENGTH_PATTERN
-							@settings.MAXLENGTH[key] = parseInt rule.substring(index + 1), 10
-							rules[i] = 'maxLength'
-						when MINLENGTH_PATTERN
-							@settings.MINLENGTH[key] = parseInt rule.substring(index + 1), 10
-							rules[i] = 'minLength'
-						when ATMOST_PATTERN
-							@settings.ATMOST[key] = parseInt rule.substring(index + 1), 10
-							rules[i] = 'atMost'
-						when ATLEAST_PATTERN
-							@settings.ATLEAST[key] = parseInt rule.substring(index + 1), 10
-							rules[i] = 'atLeast'
+        rule
 
-		for rule in rules
-			result = @[rule.trim()](key, $input.val()?.trim())
+    Validator::passValidator = (name, $item) ->
+        # TODO: 判断select/checkbox/radio
+        @validFields[name] = $item.val()
 
-			unless result.pass
-				return callback({pass: false, msg: config.msg[key][rule.trim()]})
+    Validator::errorValidator = (name, $item, msg) ->
+        @unvalidFields.push {name: name, msg: msg, item: $item}
 
-	callback({pass: true}, @result)
+    Validator::validateReturn = () ->
+        if @unvalidFields.length then @falsyReturn() else @truthyReturn()
 
-Validator::notEmpty = (name, value) ->
-	regex = /^\s+$/
-	result = value.length && !regex.test(value)
+    Validator::truthyReturn = () ->
+        @cb(@validFields)
 
-	if result
-		@result[name] = value
-		return {pass: true}
+    Validator::falsyReturn = () ->
+        if not @multiple
+            if @isOnParent then @unvalidFields[0].item.parent().addClass @errorClass else @unvalidFields[0].item.addClass @errorClass
+            @cb(@unvalidFields[0])
+        else 
+            for field in @unvalidFields
+                if @isOnParent then field.item.parent().addClass @errorClass else field.addClass @errorClass
 
-	{pass: false}
+    Validator::checker = (names) ->
+        for name of names when names.hasOwnProperty name
+            identifier = "*[data-validator=#{name}]"
+            $item = @$element.find($(identifier))
+            if not $item.length then throw new Error('Validator: please fill in a element that exisits in your form')
+            if not $item.data('rules').length then throw new Error('Validator: please fill in data-rules attributes')
+            rules = $item.data('rules').split(' ')
 
-Validator::email = (name, value) ->
-	regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-	result = regex.test(value)
+            for rule in rules
+                # 配置验证规则
+                rule = @storeValue rule
+                # 调用验证规则
+                result = @patterns[rule](name, $item)
+                # 验证报错
+                if not result then @errorValidator(name, $item, names[name][rule]) else @passValidator(name, $item)
 
-	if result
-		@result[name] = value
-		return {pass: true}
+            @validateReturn()
 
-	{pass: false}
+    # 逻辑操作
+    Validator::validate = (opts, cb) ->
+        @msg = opts.msg || {}
+        @isOnParent = opts.isOnParent || true
+        @multiple = opts.multiple || false
+        @cb = cb
+        @unvalidFields = []
+        @validFields = []
 
-Validator::phone = (name, value) ->
-	regex = /^1[3-9]\d{9}$/
-	result = regex.test(value)
+        # `has-error` is bootstrap default input error
+        @errorClass = opts.errorClass || 'has-error'
+        @checker(opts.msg)
 
-	if result
-		@result[name] = value
-		return {pass: true}
+    old = $.fn.validate
 
-	{pass: false}
+    $.fn.validate = (config, callback) ->
+        new Validator(@).validate(config, callback)
 
-Validator::minLength = (name, value) ->
-    len = value.length
-    minLen = parseInt(@settings.MINLENGTH[name], 10)
+    $.fn.validate.constructor = Validator
 
-    if len >= minLen
-        @result[name] = value
-        return {pass: true}
+    $.fn.validate.noConflict = ->
+        $.fn.validate = old
+        @
 
-    {pass: false}
+do (factory) ->
+    if typeof define is "function" and define.amd
 
-Validator::maxLength = (name, value) ->
-    len = value.length
-    maxLen = parseInt(@settings.MAXLENGTH[name], 10)
+        # AMD
+        define ["jquery"], factory
+    else if typeof exports is "object"
 
-    if len <= maxLen
-        @result[name] = value
-        return {pass: true}
+        # CommonJS
+        factory require("jquery")
+    else if typeof define is "function" and define.cmd
 
-    {pass: false}
+        # CMD
+        define (require) ->
+            require "jquery"
+            factory $
+    else
+        window.Validator = factory(jQuery)
 
-Validator::atLeast = (name, value) ->
-    len = $("*[data-validator=#{name}]:checked").length || $("*[data-validator=#{name}]:selected").length
-    minLen = @settings.ATLEAST[name]
-
-    if len >= minLen
-        @result[name] = value
-        return {pass: true}
-
-    {pass: false}
-
-Validator::atMost = (name, value) ->
-    len = $("*[data-validator=#{name}]:checked").length || $("*[data-validator=#{name}]:selected")
-    maxLen = @settings.ATMOST[name]
-
-    if len <= maxLen
-        @result[name] = value
-        return {pass: true}
-
-    {pass: false}
-
-Validator::int = (name, value) ->
-    result = not isNaN(value)
-
-    if result
-        @result[name] = value
-        return {pass: true}
-
-    {pass: false}
-
-old = $.fn.validate
-
-$.fn.validate = (config, callback) ->
-	new Validator(@).validate(config, callback)
-
-$.fn.validate.noConflict = ->
-	$.fn.validate = old
-	@
 
 
