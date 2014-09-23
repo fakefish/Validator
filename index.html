@@ -71,7 +71,7 @@
 				<li>最大长度为10个字符</li>
 			</ul>
 
-			<div class="form-group mt30">
+			<div class="form-group mt30" data-config="0">
 				<label class="control-label" for="username">
 					<span class="text-danger">*&nbsp;</span>用户名：
 				</label>
@@ -89,7 +89,7 @@
 				<li>合法的邮箱地址</li>
 			</ul>
 
-			<div class="form-group mt30">
+			<div class="form-group mt30" data-config="1">
 				<label class="control-label" for="email">
 					<span class="text-danger">*&nbsp;</span>邮箱地址：
 				</label>
@@ -185,19 +185,28 @@
 	<script src="test/jquery.js"></script>
 	<script src="validator.js"></script>
 	<script>
+		var cUsername = {
+			msg: {
+				username: {
+					required: '用户名不能为空'
+				}
+			}
+		}
+
+		var cEmail = {
+			msg: {
+				email: {
+					required: '邮箱地址不能为空',
+					email: '请填写合法的邮箱地址'
+				}
+			}
+		}
+
+		var configList = [cUsername, cEmail]
+
 		$('.btn').on('click', function () {
 			var $form = $(this).parent()
-			$form.validate({
-				msg: {
-					username: {
-						required: '用户名不能为空'
-					},
-					email: {
-						required: '邮箱地址不能为空',
-						email: '请填写合法的邮箱地址'
-					}
-				}
-			}, function (result) {
+			$form.validate(configList[$form.data('config')], function (result) {
 				console.log(result)
 			})
 		})
