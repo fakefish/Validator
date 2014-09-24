@@ -10,7 +10,7 @@ Licensed under MIT
   var factory;
 
   factory = function($) {
-    var Validator, old;
+    var Validator, checked, defineValues, old;
     Validator = (function() {
       function Validator(element) {
         this.$element = $(element);
@@ -19,9 +19,46 @@ Licensed under MIT
       return Validator;
 
     })();
+    checked = function($item, type) {
+      var list;
+      list = [];
+      if (type === 'checkbox' || type === 'radio') {
+        $item.each(function() {
+          if ($(this).is(':checked')) {
+            return list.push($(this).val());
+          }
+        });
+      } else if (type === 'radio') {
+        $item.each(function() {
+          if ($(this).is(':checked')) {
+            return list = $(this).val();
+          }
+        });
+      } else if (type === 'select') {
+        $item.each(function() {
+          if ($(this).is(':selected')) {
+            return list.push($(this).val());
+          }
+        });
+      }
+      return list;
+    };
+    defineValues = {
+      maxLength: null,
+      minLength: null,
+      max: null,
+      min: null,
+      check: null
+    };
     Validator.prototype.patterns = {
       required: function(name, $item) {
         var regex, result, value;
+        if ($item.prop('tagName') === 'SELECT') {
+          return result = !!checked($item, 'select').length;
+        }
+        if ($item.attr('type') === 'checkbox' || $item.attr('type') === 'radio') {
+          return result = !!checked($item, 'checkbox').length;
+        }
         regex = /^\s+$/;
         value = $item.val().trim();
         return result = !!value.length && !regex.test(value);
@@ -31,14 +68,38 @@ Licensed under MIT
         regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         value = (_ref = $item.val()) != null ? _ref.trim() : void 0;
         return result = regex.test(value);
+      },
+      radio: function(name, $item) {
+        var result;
+        return result = !!checked($item, 'radio').length;
+      },
+      check: function(name, $item) {
+        var len, result;
+        len = checked($item, 'checkbox').length;
+        return result = !!len && len === +defineValues.check;
+      },
+      mobile: function(name, $item) {
+        var regex, result, value, _ref;
+        regex = /^1[3-9]\d{9}$/;
+        value = (_ref = $item.val()) != null ? _ref.trim() : void 0;
+        return result = regex.test(value);
+      },
+      tel: function(name, $item) {
+        var regex, result, value, _ref;
+        regex = /^(?:(?:0\d{2,3}[- ]?[1-9]\d{6,7})|(?:[48]00[- ]?[1-9]\d{6}))$/;
+        value = (_ref = $item.val()) != null ? _ref.trim() : void 0;
+        return result = regex.test(value);
+      },
+      date: function(name, $item) {
+        var regex, result, value, _ref;
+        regex = /^([1-2]\d{3})([-/.])?(1[0-2]|0?[1-9])([-/.])?([1-2]\d|3[01]|0?[1-9])$/;
+        value = (_ref = $item.val()) != null ? _ref.trim() : void 0;
+        return result = regex.test(value);
+      },
+      number: function(name, $item) {
+        var _ref;
+        return isNaN(+((_ref = $item.val()) != null ? _ref.trim() : void 0));
       }
-    };
-    Validator.prototype.defineValues = {
-      maxLength: null,
-      minLength: null,
-      max: null,
-      min: null,
-      check: null
     };
     Validator.prototype.storeValue = function(rule) {
       var pattern, pattern_check, pattern_maxLength, pattern_minLength, patterns, _i, _len;
@@ -52,13 +113,13 @@ Licensed under MIT
           rule = rule.split('=');
           switch (pattern) {
             case pattern_maxLength:
-              this.defineValues.maxLength = rule[1];
+              defineValues.maxLength = rule[1];
               return rule[0];
             case pattern_minLength:
-              this.defineValues.minLength = rule[1];
+              defineValues.minLength = rule[1];
               return rule[0];
             case pattern_check:
-              this.defineValues.check = rule[1];
+              defineValues.check = rule[1];
               return rule[0];
           }
         }
@@ -66,6 +127,12 @@ Licensed under MIT
       return rule;
     };
     Validator.prototype.passValidator = function(name, $item) {
+      if ($item.prop('tagName') === 'SELECT') {
+        return this.validFields[name] = checked($item, 'select');
+      }
+      if ($item.attr('type') === 'radio' || $item.attr('type') === 'checkbox') {
+        return this.validFields[name] = checked($item, 'checkbox');
+      }
       return this.validFields[name] = $item.val();
     };
     Validator.prototype.errorValidator = function(name, $item, msg) {
@@ -108,6 +175,17 @@ Licensed under MIT
         return _results;
       }
     };
+    Validator.prototype.bindEvents = function($item) {
+      return $item.on('focus', (function(_this) {
+        return function() {
+          if (_this.isOnParent) {
+            return $item.parent().removeClass(_this.errorClass);
+          } else {
+            return $item.removeClass(_this.errorClass);
+          }
+        };
+      })(this));
+    };
     Validator.prototype.checker = function(names) {
       var $item, identifier, name, result, rule, rules, _i, _len, _results;
       _results = [];
@@ -124,13 +202,16 @@ Licensed under MIT
           throw new Error('Validator: please fill in data-rules attributes');
         }
         rules = $item.data('rules').split(' ');
+        this.bindEvents($item);
         for (_i = 0, _len = rules.length; _i < _len; _i++) {
           rule = rules[_i];
           rule = this.storeValue(rule);
           result = this.patterns[rule](name, $item);
-          if (!result) {
+          if (!result && rules.indexOf('required') !== -1) {
             this.errorValidator(name, $item, names[name][rule]);
-          } else {
+          } else if (!result && rules.indexOf('required') === -1 && rule === 'required') {
+            this.errorValidator(name, $item, names[name][rule]);
+          } else if (result) {
             this.passValidator(name, $item);
           }
         }
