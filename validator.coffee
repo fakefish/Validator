@@ -26,6 +26,14 @@ factory = ($) ->
 
         list
 
+    getValue = ($item) ->
+        type = $item.attr('type')
+        tagName = $item.prop('tagName')
+
+        if tagName is 'SELECT' then return checked($item, 'select').length
+        if type is 'radio' then return checked($item, 'radio').length
+        if type is 'checkbox' then return checked($item, 'checkbox').length
+
     # 验证规则配置
     defineValues = 
         maxLength: null,
@@ -85,7 +93,15 @@ factory = ($) ->
         number: (name, $item) ->
             return isNaN(+$item.val()?.trim())
 
-        
+        # 判断是否为英文字母组合（不区分大小写）
+        alpha: (name, $item) ->
+            regex = /^[a-z]*[A-Z]*$/
+            value = $item.val()?.trim()
+            result = regex.test value
+
+        # TODO: repeat预存储
+
+        # TODO: 默认的密码强度判断
 
     # 配置验证规则
     Validator::storeValue = (rule) ->
@@ -157,8 +173,9 @@ factory = ($) ->
                 # 调用验证规则
                 result = @patterns[rule](name, $item)
                 # 验证报错
-                # if not result and rules.indexOf('required') isnt -1
                 if not result and rules.indexOf('required') isnt -1
+                    @errorValidator(name, $item, names[name][rule])
+                else if not result and rules.indexOf('required') is -1 and getValue($item)
                     @errorValidator(name, $item, names[name][rule])
                 else if result
                     @passValidator(name, $item)

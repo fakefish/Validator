@@ -10,7 +10,7 @@ Licensed under MIT
   var factory;
 
   factory = function($) {
-    var Validator, checked, defineValues, old;
+    var Validator, checked, defineValues, getValue, old;
     Validator = (function() {
       function Validator(element) {
         this.$element = $(element);
@@ -42,6 +42,20 @@ Licensed under MIT
         });
       }
       return list;
+    };
+    getValue = function($item) {
+      var tagName, type;
+      type = $item.attr('type');
+      tagName = $item.prop('tagName');
+      if (tagName === 'SELECT') {
+        return checked($item, 'select').length;
+      }
+      if (type === 'radio') {
+        return checked($item, 'radio').length;
+      }
+      if (type === 'checkbox') {
+        return checked($item, 'checkbox').length;
+      }
     };
     defineValues = {
       maxLength: null,
@@ -99,6 +113,12 @@ Licensed under MIT
       number: function(name, $item) {
         var _ref;
         return isNaN(+((_ref = $item.val()) != null ? _ref.trim() : void 0));
+      },
+      alpha: function(name, $item) {
+        var regex, result, value, _ref;
+        regex = /^[a-z]*[A-Z]*$/;
+        value = (_ref = $item.val()) != null ? _ref.trim() : void 0;
+        return result = regex.test(value);
       }
     };
     Validator.prototype.storeValue = function(rule) {
@@ -209,7 +229,7 @@ Licensed under MIT
           result = this.patterns[rule](name, $item);
           if (!result && rules.indexOf('required') !== -1) {
             this.errorValidator(name, $item, names[name][rule]);
-          } else if (!result && rules.indexOf('required') === -1 && rule === 'required') {
+          } else if (!result && rules.indexOf('required') === -1 && getValue($item)) {
             this.errorValidator(name, $item, names[name][rule]);
           } else if (result) {
             this.passValidator(name, $item);
