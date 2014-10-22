@@ -113,6 +113,16 @@ factory = ($) ->
             value = $item.val()?.trim().length
             result = value > min
 
+        # 最大值
+        max: (name, $item) ->
+            max = defineValues.maxValue
+            result = getValue($item) < max
+
+        # 最小值
+        min: (name, $item) ->
+            min = defineValues.minValue
+            result = getValue($item) > min
+
         # TODO: repeat预存储
 
         # TODO: 默认的密码强度判断
@@ -128,22 +138,23 @@ factory = ($) ->
 
         for pattern in patterns
             if rule.match pattern
-                rule = rule.split('=')
+                rules = rule.split('=')
                 switch pattern
                     when pattern_maxLength
-                        defineValues.maxLength = rule[1]
-                        return rule[0]
-                    when pattern_maxValue = rule[1]
-                        defineValues.maxValue = rule[1]
-                        return rule[0]
-                    when pattern_minValue = rule[1]
-                        return rule[0]
+                        defineValues.maxLength = rules[1]
+                        return rules[0]
+                    when pattern_maxValue
+                        defineValues.maxValue = rules[1]
+                        return rules[0]
+                    when pattern_minValue
+                        defineValues.minValue = rules[1]
+                        return rules[0]
                     when pattern_minLength
-                        defineValues.minLength = rule[1]
-                        return rule[0]
+                        defineValues.minLength = rules[1]
+                        return rules[0]
                     when pattern_check
-                        defineValues.check = rule[1]
-                        return rule[0]
+                        defineValues.check = rules[1]
+                        return rules[0]
 
         rule
 

@@ -133,10 +133,20 @@ Licensed under MIT
         min = defineValues.minLength;
         value = (_ref = $item.val()) != null ? _ref.trim().length : void 0;
         return result = value > min;
+      },
+      max: function(name, $item) {
+        var max, result;
+        max = defineValues.maxValue;
+        return result = getValue($item) < max;
+      },
+      min: function(name, $item) {
+        var min, result;
+        min = defineValues.minValue;
+        return result = getValue($item) > min;
       }
     };
     Validator.prototype.storeValue = function(rule) {
-      var pattern, pattern_check, pattern_maxLength, pattern_maxValue, pattern_minLength, pattern_minValue, patterns, _i, _len;
+      var pattern, pattern_check, pattern_maxLength, pattern_maxValue, pattern_minLength, pattern_minValue, patterns, rules, _i, _len;
       pattern_maxLength = /maxLength=/i;
       pattern_minLength = /minLength=/i;
       pattern_maxValue = /max=/i;
@@ -146,22 +156,23 @@ Licensed under MIT
       for (_i = 0, _len = patterns.length; _i < _len; _i++) {
         pattern = patterns[_i];
         if (rule.match(pattern)) {
-          rule = rule.split('=');
+          rules = rule.split('=');
           switch (pattern) {
             case pattern_maxLength:
-              defineValues.maxLength = rule[1];
-              return rule[0];
-            case pattern_maxValue = rule[1]:
-              defineValues.maxValue = rule[1];
-              return rule[0];
-            case pattern_minValue = rule[1]:
-              return rule[0];
+              defineValues.maxLength = rules[1];
+              return rules[0];
+            case pattern_maxValue:
+              defineValues.maxValue = rules[1];
+              return rules[0];
+            case pattern_minValue:
+              defineValues.minValue = rules[1];
+              return rules[0];
             case pattern_minLength:
-              defineValues.minLength = rule[1];
-              return rule[0];
+              defineValues.minLength = rules[1];
+              return rules[0];
             case pattern_check:
-              defineValues.check = rule[1];
-              return rule[0];
+              defineValues.check = rules[1];
+              return rules[0];
           }
         }
       }
