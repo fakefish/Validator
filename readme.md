@@ -9,14 +9,14 @@
 ## Usage
 ```html
 	<form id="form">
-		<input type="text" data-validator="name" data-rules="notEmpty, maxLength=10">
-		<input type="password" data-validator="password" data-rules="notEmpty, minLength=6">
-		<input type="email" data-validator="email" data-rules="notEmpty, email">
+		<input type="text" data-validator="name" data-rules="required maxLength=10">
+		<input type="password" data-validator="password" data-rules="required minLength=6">
+		<input type="email" data-validator="email" data-rules="required email">
 		<input type="text" data-validator="phone" data-rules="phone">
-		<input type="checkbox" data-validator="fruit" value="apple" data-rules="atLeast=1, atMost=2">
+		<input type="checkbox" data-validator="fruit" value="apple" data-rules="min=1 max=2">
 		<input type="checkbox" data-validator="fruit" value="pear">
 		<input type="checkbox" data-validator="fruit" value="lemon">
-		<select data-validator="selection" data-rules="notEmpty">
+		<select data-validator="selection" data-rules="required">
 			<option value="1"></option>
 			<option value="2"></option>
 		</select>
@@ -27,7 +27,7 @@
 	var config = {
 		msg: {
 			name: {
-				notEmpty: "name can’t be empty",
+				required: "name can’t be empty",
 				maxLength: "name can't be more than 10 characters"
 			},
 			password: {
@@ -68,7 +68,7 @@ Validator will quit as soon as it meets up the first error, Valdiator would retu
 
 
 ## Rules
-- notEmpty
+- required
 - email
 - phone
 - int

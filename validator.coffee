@@ -11,12 +11,46 @@ factory = ($) ->
         constructor: (element) ->
             @$element = $(element)
 
+    checked = ($item, type) ->
+        list = []
+
+        if type is 'checkbox' or type is 'radio'
+            $item.each () ->
+                if $(this).is(':checked') then list.push($(this).val())
+        else if type is 'radio'
+            $item.each () ->
+                if $(this).is(':checked') then list = $(this).val()
+        else if type is 'select'
+            $item.each () ->
+                if $(this).is(':selected') then list.push($(this).val())
+
+        list
+
+    getValue = ($item) ->
+        type = $item.attr('type')
+        tagName = $item.prop('tagName')
+
+        if tagName is 'SELECT' then return checked($item, 'select').length
+        if type is 'radio' then return checked($item, 'radio').length
+        if type is 'checkbox' then return checked($item, 'checkbox').length
+
+    # 验证规则配置
+    defineValues = 
+        maxLength: null,
+        minLength: null,
+        maxValue: null,
+        minValue: null,
+        max: null,
+        min: null,
+        check: null
+
     # 类型判断
     Validator::patterns = 
         # 必须 填/选 字段
         required: (name, $item) ->
-            if $item.prop('tagName') is 'SELECT' then return result = !$item.find(':selected').val()
-            if $item.attr('type') is 'checkbox' or $item.attr('type') is 'radio' then return result = !$item.find(':checked').val()
+            if $item.prop('tagName') is 'SELECT' then return result = !!checked($item, 'select').length
+            # checkbox 和 radio 的判断规则一致，调用 checked 函数时，type传 checkbox 和 radio 都可以
+            if $item.attr('type') is 'checkbox' or $item.attr('type') is 'radio' then return result = !!checked($item, 'checkbox').length
 
             regex = /^\s+$/
             value = $item.val().trim()
@@ -26,6 +60,15 @@ factory = ($) ->
             regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
             value = $item.val()?.trim()
             result = regex.test value
+
+        # radio 默认有一个选中即通过
+        radio: (name, $item) ->
+            result = !!checked($item, 'radio').length
+
+        # todo 判断 至少/至多
+        check: (name, $item) ->
+            len = checked($item, 'checkbox').length
+            result = !!len && len is +defineValues.check
 
         # 手机：仅中国手机适应；以 1 开头，第二位是 3-9，并且总位数为 11 位数字
         mobile: (name, $item) ->
@@ -41,46 +84,73 @@ factory = ($) ->
             value = $item.val()?.trim()
             result = regex.test value
 
-    # 验证规则配置
-    Validator::defineValues = 
-        maxLength: null,
-        minLength: null,
-        max: null,
-        min: null,
-        check: null
+
+        ## 仅支持 8 种类型的 day
+        ## 20120409 | 2012-04-09 | 2012/04/09 | 2012.04.09 | 以上各种无 0 的状况
+        date: (name, $item) ->
+            regex = /^([1-2]\d{3})([-/.])?(1[0-2]|0?[1-9])([-/.])?([1-2]\d|3[01]|0?[1-9])$/
+            value = $item.val()?.trim()
+            result = regex.test value
+
+        number: (name, $item) ->
+            return isNaN(+$item.val()?.trim())
+
+        # 判断是否为英文字母组合（不区分大小写）
+        alpha: (name, $item) ->
+            regex = /^[a-z]*[A-Z]*$/
+            value = $item.val()?.trim()
+            result = regex.test value
+
+        # 最大长度
+        maxLength: (name, $item) ->
+            max = defineValues.maxLength
+            value = $item.val()?.trim().length
+            result = value < max
+
+        # 最小长度
+        minLength: (name, $item) ->
+            min = defineValues.minLength
+            value = $item.val()?.trim().length
+            result = value > min
+
+        # TODO: repeat预存储
+
+        # TODO: 默认的密码强度判断
 
     # 配置验证规则
     Validator::storeValue = (rule) ->
         pattern_maxLength = /maxLength=/i
         pattern_minLength = /minLength=/i
+        pattern_maxValue = /max=/i
+        pattern_minValue = /min=/i
         pattern_check    = /check=/i
-        patterns = [pattern_maxLength, pattern_minLength, pattern_check]
+        patterns = [pattern_maxLength, pattern_minLength, pattern_check, pattern_maxValue, pattern_minValue]
 
         for pattern in patterns
             if rule.match pattern
                 rule = rule.split('=')
                 switch pattern
                     when pattern_maxLength
-                        @defineValues.maxLength = rule[1]
+                        defineValues.maxLength = rule[1]
+                        return rule[0]
+                    when pattern_maxValue = rule[1]
+                        defineValues.maxValue = rule[1]
+                        return rule[0]
+                    when pattern_minValue = rule[1]
                         return rule[0]
                     when pattern_minLength
-                        @defineValues.minLength = rule[1]
+                        defineValues.minLength = rule[1]
                         return rule[0]
                     when pattern_check
-                        @defineValues.check = rule[1]
+                        defineValues.check = rule[1]
                         return rule[0]
 
         rule
 
     Validator::passValidator = (name, $item) ->
-        if $item.prop('tagName') is 'SELECT' then return @validFields[name] = $item.find(':selected').val()
-        if $item.attr('type') is 'radio' then return @validFields[name] = $item.find(':checked').val()
-        if $item.attr('type') is 'checkbox'
-            @validFields[name] = []
-            for checkbox in $item.find(':checked')
-                @validFields[name].push(checkbox)
-            return
-
+        if $item.prop('tagName') is 'SELECT' then return @validFields[name] = checked($item, 'select')
+        # checkbox 和 radio 的判断规则一致，调用 checked 函数时，type传 checkbox 和 radio 都可以
+        if $item.attr('type') is 'radio' or $item.attr('type') is 'checkbox' then return @validFields[name] = checked($item, 'checkbox')
         @validFields[name] = $item.val()
 
     Validator::errorValidator = (name, $item, msg) ->
@@ -110,7 +180,7 @@ factory = ($) ->
             $item = @$element.find($(identifier))
 
             # 表单中不存在指定 `data-validator` 的dom element
-            if not $item.length then throw new Error('Validator: please fill in a element that exisits in your form')
+            if not $item.length then throw new Error('Validator: please fill in a element that exists in your form')
             # `data-validator` 项没有设置 `data-rules' 属性
             if not $item.data('rules').length then throw new Error('Validator: please fill in data-rules attributes')
 
@@ -124,8 +194,9 @@ factory = ($) ->
                 # 调用验证规则
                 result = @patterns[rule](name, $item)
                 # 验证报错
-                # if not result and rules.indexOf('required') isnt -1
                 if not result and rules.indexOf('required') isnt -1
+                    @errorValidator(name, $item, names[name][rule])
+                else if not result and rules.indexOf('required') is -1 and getValue($item)
                     @errorValidator(name, $item, names[name][rule])
                 else if result
                     @passValidator(name, $item)
