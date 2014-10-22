@@ -38,6 +38,8 @@ factory = ($) ->
     defineValues = 
         maxLength: null,
         minLength: null,
+        maxValue: null,
+        minValue: null,
         max: null,
         min: null,
         check: null
@@ -99,6 +101,18 @@ factory = ($) ->
             value = $item.val()?.trim()
             result = regex.test value
 
+        # 最大长度
+        maxLength: (name, $item) ->
+            max = defineValues.maxLength
+            value = $item.val()?.trim().length
+            result = value < max
+
+        # 最小长度
+        minLength: (name, $item) ->
+            min = defineValues.minLength
+            value = $item.val()?.trim().length
+            result = value > min
+
         # TODO: repeat预存储
 
         # TODO: 默认的密码强度判断
@@ -107,8 +121,10 @@ factory = ($) ->
     Validator::storeValue = (rule) ->
         pattern_maxLength = /maxLength=/i
         pattern_minLength = /minLength=/i
+        pattern_maxValue = /max=/i
+        pattern_minValue = /min=/i
         pattern_check    = /check=/i
-        patterns = [pattern_maxLength, pattern_minLength, pattern_check]
+        patterns = [pattern_maxLength, pattern_minLength, pattern_check, pattern_maxValue, pattern_minValue]
 
         for pattern in patterns
             if rule.match pattern
@@ -116,6 +132,11 @@ factory = ($) ->
                 switch pattern
                     when pattern_maxLength
                         defineValues.maxLength = rule[1]
+                        return rule[0]
+                    when pattern_maxValue = rule[1]
+                        defineValues.maxValue = rule[1]
+                        return rule[0]
+                    when pattern_minValue = rule[1]
                         return rule[0]
                     when pattern_minLength
                         defineValues.minLength = rule[1]
@@ -159,7 +180,7 @@ factory = ($) ->
             $item = @$element.find($(identifier))
 
             # 表单中不存在指定 `data-validator` 的dom element
-            if not $item.length then throw new Error('Validator: please fill in a element that exisits in your form')
+            if not $item.length then throw new Error('Validator: please fill in a element that exists in your form')
             # `data-validator` 项没有设置 `data-rules' 属性
             if not $item.data('rules').length then throw new Error('Validator: please fill in data-rules attributes')
 

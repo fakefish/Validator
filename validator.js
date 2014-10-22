@@ -60,6 +60,8 @@ Licensed under MIT
     defineValues = {
       maxLength: null,
       minLength: null,
+      maxValue: null,
+      minValue: null,
       max: null,
       min: null,
       check: null
@@ -119,14 +121,28 @@ Licensed under MIT
         regex = /^[a-z]*[A-Z]*$/;
         value = (_ref = $item.val()) != null ? _ref.trim() : void 0;
         return result = regex.test(value);
+      },
+      maxLength: function(name, $item) {
+        var max, result, value, _ref;
+        max = defineValues.maxLength;
+        value = (_ref = $item.val()) != null ? _ref.trim().length : void 0;
+        return result = value < max;
+      },
+      minLength: function(name, $item) {
+        var min, result, value, _ref;
+        min = defineValues.minLength;
+        value = (_ref = $item.val()) != null ? _ref.trim().length : void 0;
+        return result = value > min;
       }
     };
     Validator.prototype.storeValue = function(rule) {
-      var pattern, pattern_check, pattern_maxLength, pattern_minLength, patterns, _i, _len;
+      var pattern, pattern_check, pattern_maxLength, pattern_maxValue, pattern_minLength, pattern_minValue, patterns, _i, _len;
       pattern_maxLength = /maxLength=/i;
       pattern_minLength = /minLength=/i;
+      pattern_maxValue = /max=/i;
+      pattern_minValue = /min=/i;
       pattern_check = /check=/i;
-      patterns = [pattern_maxLength, pattern_minLength, pattern_check];
+      patterns = [pattern_maxLength, pattern_minLength, pattern_check, pattern_maxValue, pattern_minValue];
       for (_i = 0, _len = patterns.length; _i < _len; _i++) {
         pattern = patterns[_i];
         if (rule.match(pattern)) {
@@ -134,6 +150,11 @@ Licensed under MIT
           switch (pattern) {
             case pattern_maxLength:
               defineValues.maxLength = rule[1];
+              return rule[0];
+            case pattern_maxValue = rule[1]:
+              defineValues.maxValue = rule[1];
+              return rule[0];
+            case pattern_minValue = rule[1]:
               return rule[0];
             case pattern_minLength:
               defineValues.minLength = rule[1];
@@ -216,7 +237,7 @@ Licensed under MIT
         identifier = "*[data-validator=" + name + "]";
         $item = this.$element.find($(identifier));
         if (!$item.length) {
-          throw new Error('Validator: please fill in a element that exisits in your form');
+          throw new Error('Validator: please fill in a element that exists in your form');
         }
         if (!$item.data('rules').length) {
           throw new Error('Validator: please fill in data-rules attributes');
