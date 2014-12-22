@@ -8,9 +8,17 @@
 </head>
 <body>
 
-	<form>
-		<input id="name" name="name" type="text" data-validator="name" data-rules="notEmpty">
-		<input id="email" name="email" type="email" data-validator="email" data-rules="notEmpty,email">
+	<form id="required-form">
+		<input type="text" data-validator="username" data-rules="required">
+
+		<input type="email" data-validator="email" data-rules="required email">
+
+		<input type="radio" data-validator="gender" data-rules="radio" value="male">
+		<input type="radio" data-validator="gender" value="female">
+
+		<input type="checkbox" data-validator="favorite" data-rules="checkbox" value="basketball">
+		<input type="checkbox" data-validator="favorite" value="soccer">
+		<input type="checkbox" data-validator="favorite" value="football">
 	</form>
 	
 	<div id="mocha"></div>
